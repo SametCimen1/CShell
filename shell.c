@@ -1,15 +1,3 @@
-/***************************************************************************//**
-
-  @file         main.c
-
-  @author       Stephen Brennan
-
-  @date         Thursday,  8 January 2015
-
-  @brief        LSH (Libstephen SHell)
-
-*******************************************************************************/
-
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -17,30 +5,36 @@
 #include <stdio.h>
 #include <string.h>
 
-/*
-  Function Declarations for builtin shell commands:
- */
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
+int lsh_custom(char **args);
 
-/*
-  List of builtin commands, followed by their corresponding functions.
- */
 char *builtin_str[] = {
   "cd",
   "help",
-  "exit"
+  "exit",
+  "custom"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
-  &lsh_exit
+  &lsh_exit,
+  &lsh_custom
 };
 
 int lsh_num_builtins() {
   return sizeof(builtin_str) / sizeof(char *);
+}
+
+int lsh_custom(char **args){
+	printf("This is a custom function");
+	int i;
+	for(i = 0; i < 10; i++){
+		printf("%d \n", i);
+	}	
+	return 1;
 }
 
 
@@ -56,41 +50,28 @@ int lsh_cd(char **args)
   return 1;
 }
 
-/**
-   @brief Builtin command: print help.
-   @param args List of args.  Not examined.
-   @return Always returns 1, to continue executing.
- */
 int lsh_help(char **args)
 {
+  // runs when the user types help, lists all the functions
   int i;
-  printf("Stephen Brennan's LSH\n");
-  printf("Type program names and arguments, and hit enter.\n");
-  printf("The following are built in:\n");
+  
+
+  printf("Welcome to CShell\n");
+  printf("To learn about functions, type its name and hit enter");
 
   for (i = 0; i < lsh_num_builtins(); i++) {
     printf("  %s\n", builtin_str[i]);
   }
 
-  printf("Use the man command for information on other programs.\n");
+  printf("Use the man command for more information on other programs.\n");
   return 1;
 }
 
-/**
-   @brief Builtin command: exit.
-   @param args List of args.  Not examined.
-   @return Always returns 0, to terminate execution.
- */
 int lsh_exit(char **args)
 {
   return 0;
 }
 
-/**
-  @brief Launch a program and wait for it to terminate.
-  @param args Null terminated list of arguments (including program).
-  @return Always returns 1, to continue execution.
- */
 int lsh_launch(char **args)
 {
   pid_t pid;
@@ -98,16 +79,13 @@ int lsh_launch(char **args)
 
   pid = fork();
   if (pid == 0) {
-    // Child process
     if (execvp(args[0], args) == -1) {
       perror("lsh");
     }
     exit(EXIT_FAILURE);
   } else if (pid < 0) {
-    // Error forking
     perror("lsh");
   } else {
-    // Parent process
     do {
       waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
@@ -116,17 +94,11 @@ int lsh_launch(char **args)
   return 1;
 }
 
-/**
-   @brief Execute shell built-in or launch program.
-   @param args Null terminated list of arguments.
-   @return 1 if the shell should continue running, 0 if it should terminate
- */
 int lsh_execute(char **args)
 {
   int i;
 
   if (args[0] == NULL) {
-    // An empty command was entered.
     return 1;
   }
 
@@ -139,10 +111,6 @@ int lsh_execute(char **args)
   return lsh_launch(args);
 }
 
-/**
-   @brief Read a line of input from stdin.
-   @return The line from stdin.
- */
 char *lsh_read_line(void)
 {
 #ifdef LSH_USE_STD_GETLINE
@@ -236,10 +204,7 @@ char **lsh_split_line(char *line)
   return tokens;
 }
 
-/**
-   @brief Loop getting input and executing it.
- */
-void lsh_loop(void)
+void loopArgs(void)
 {
   char *line;
   char **args;
@@ -256,20 +221,8 @@ void lsh_loop(void)
   } while (status);
 }
 
-/**
-   @brief Main entry point.
-   @param argc Argument count.
-   @param argv Argument vector.
-   @return status code
- */
 int main(int argc, char **argv)
 {
-  // Load config files, if any.
-
-  // Run command loop.
-  lsh_loop();
-
-  // Perform any shutdown/cleanup.
-
+  loopArgs();
   return EXIT_SUCCESS;
 }
