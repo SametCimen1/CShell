@@ -5,27 +5,54 @@
 #include <stdio.h>
 #include <string.h>
 
+
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
 int lsh_custom(char **args);
+int lsh_next(char ** args);
 
 char *builtin_str[] = {
   "cd",
   "help",
   "exit",
-  "custom"
+  "custom",
+  "next"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
   &lsh_exit,
-  &lsh_custom
+  &lsh_custom,
+  &lsh_next 
 };
 
 int lsh_num_builtins() {
   return sizeof(builtin_str) / sizeof(char *);
+}
+
+int lsh_next(char **args){
+
+	char defaultCode[100] = "cd /Users/sametcimen/";
+
+	if(args[2] != NULL){
+		 strcat(defaultCode, args[1]);
+	}else{
+		strcpy(defaultCode, "cd ./ ");
+	}
+	strcat(defaultCode, " && npx create-next-app ");
+	if(args[2] != NULL){
+		strcat(defaultCode, args[2]);
+	}else{
+		strcat(defaultCode, args[1]);
+	}
+	
+	printf("%s", defaultCode);
+	
+	system(defaultCode);
+
+	return 1;
 }
 
 int lsh_custom(char **args){
@@ -41,7 +68,7 @@ int lsh_custom(char **args){
 int lsh_cd(char **args)
 {
   if (args[1] == NULL) {
-    fprintf(stderr, "lsh: expected argument to \"cd\"\n");
+    fprintf(stderr, "please provide a directory");
   } else {
     if (chdir(args[1]) != 0) {
       perror("lsh");
@@ -52,7 +79,6 @@ int lsh_cd(char **args)
 
 int lsh_help(char **args)
 {
-  // runs when the user types help, lists all the functions
   int i;
   
 
@@ -166,11 +192,7 @@ char *lsh_read_line(void)
 
 #define LSH_TOK_BUFSIZE 64
 #define LSH_TOK_DELIM " \t\r\n\a"
-/**
-   @brief Split a line into tokens (very naively).
-   @param line The line.
-   @return Null-terminated array of tokens.
- */
+
 char **lsh_split_line(char *line)
 {
   int bufsize = LSH_TOK_BUFSIZE, position = 0;
