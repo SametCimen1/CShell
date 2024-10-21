@@ -6,11 +6,11 @@
 #include <string.h>
 
 
-int lsh_cd(char **args);
-int lsh_help(char **args);
-int lsh_exit(char **args);
-int lsh_custom(char **args);
-int lsh_next(char ** args);
+int sam_cd(char **args);
+int sam_help(char **args);
+int sam_exit(char **args);
+int sam_custom(char **args);
+int sam_next(char ** args);
 
 char *builtin_str[] = {
   "cd",
@@ -21,18 +21,18 @@ char *builtin_str[] = {
 };
 
 int (*builtin_func[]) (char **) = {
-  &lsh_cd,
-  &lsh_help,
-  &lsh_exit,
-  &lsh_custom,
-  &lsh_next 
+  &sam_cd,
+  &sam_help,
+  &sam_exit,
+  &sam_custom,
+  &sam_next 
 };
 
-int lsh_num_builtins() {
+int sam_num_builtins() {
   return sizeof(builtin_str) / sizeof(char *);
 }
 
-int lsh_next(char **args){
+int sam_next(char **args){
 
 	char defaultCode[100] = "cd /Users/sametcimen/";
 
@@ -55,7 +55,7 @@ int lsh_next(char **args){
 	return 1;
 }
 
-int lsh_custom(char **args){
+int sam_custom(char **args){
 	printf("This is a custom function");
 	int i;
 	for(i = 0; i < 10; i++){
@@ -65,7 +65,7 @@ int lsh_custom(char **args){
 }
 
 
-int lsh_cd(char **args)
+int sam_cd(char **args)
 {
   if (args[1] == NULL) {
     fprintf(stderr, "please provide a directory");
@@ -77,7 +77,7 @@ int lsh_cd(char **args)
   return 1;
 }
 
-int lsh_help(char **args)
+int sam_help(char **args)
 {
   int i;
   
@@ -85,7 +85,7 @@ int lsh_help(char **args)
   printf("Welcome to CShell\n");
   printf("To learn about functions, type its name and hit enter");
 
-  for (i = 0; i < lsh_num_builtins(); i++) {
+  for (i = 0; i < sam_num_builtins(); i++) {
     printf("  %s\n", builtin_str[i]);
   }
 
@@ -93,12 +93,12 @@ int lsh_help(char **args)
   return 1;
 }
 
-int lsh_exit(char **args)
+int sam_exit(char **args)
 {
   return 0;
 }
 
-int lsh_launch(char **args)
+int sam_launch(char **args)
 {
   pid_t pid;
   int status;
@@ -120,7 +120,7 @@ int lsh_launch(char **args)
   return 1;
 }
 
-int lsh_execute(char **args)
+int sam_execute(char **args)
 {
   int i;
 
@@ -128,18 +128,18 @@ int lsh_execute(char **args)
     return 1;
   }
 
-  for (i = 0; i < lsh_num_builtins(); i++) {
+  for (i = 0; i < sam_num_builtins(); i++) {
     if (strcmp(args[0], builtin_str[i]) == 0) {
       return (*builtin_func[i])(args);
     }
   }
 
-  return lsh_launch(args);
+  return sam_launch(args);
 }
 
-char *lsh_read_line(void)
+char *sam_read_line(void)
 {
-#ifdef LSH_USE_STD_GETLINE
+#ifdef SAM_USE_STD_GETLINE
   char *line = NULL;
   ssize_t bufsize = 0; // have getline allocate a buffer for us
   if (getline(&line, &bufsize, stdin) == -1) {
@@ -152,8 +152,8 @@ char *lsh_read_line(void)
   }
   return line;
 #else
-#define LSH_RL_BUFSIZE 1024
-  int bufsize = LSH_RL_BUFSIZE;
+#define SAM_RL_BUFSIZE 1024
+  int bufsize = SAM_RL_BUFSIZE;
   int position = 0;
   char *buffer = malloc(sizeof(char) * bufsize);
   int c;
@@ -179,7 +179,7 @@ char *lsh_read_line(void)
 
     // If we have exceeded the buffer, reallocate.
     if (position >= bufsize) {
-      bufsize += LSH_RL_BUFSIZE;
+      bufsize += SAM_RL_BUFSIZE;
       buffer = realloc(buffer, bufsize);
       if (!buffer) {
         fprintf(stderr, "lsh: allocation error\n");
@@ -190,12 +190,12 @@ char *lsh_read_line(void)
 #endif
 }
 
-#define LSH_TOK_BUFSIZE 64
-#define LSH_TOK_DELIM " \t\r\n\a"
+#define SAM_TOK_BUFSIZE 64
+#define SAM_TOK_DELIM " \t\r\n\a"
 
-char **lsh_split_line(char *line)
+char **sam_split_line(char *line)
 {
-  int bufsize = LSH_TOK_BUFSIZE, position = 0;
+  int bufsize = SAM_TOK_BUFSIZE, position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token, **tokens_backup;
 
@@ -204,13 +204,13 @@ char **lsh_split_line(char *line)
     exit(EXIT_FAILURE);
   }
 
-  token = strtok(line, LSH_TOK_DELIM);
+  token = strtok(line, SAM_TOK_DELIM);
   while (token != NULL) {
     tokens[position] = token;
     position++;
 
     if (position >= bufsize) {
-      bufsize += LSH_TOK_BUFSIZE;
+      bufsize += SAM_TOK_BUFSIZE;
       tokens_backup = tokens;
       tokens = realloc(tokens, bufsize * sizeof(char*));
       if (!tokens) {
@@ -220,7 +220,7 @@ char **lsh_split_line(char *line)
       }
     }
 
-    token = strtok(NULL, LSH_TOK_DELIM);
+    token = strtok(NULL, SAM_TOK_DELIM);
   }
   tokens[position] = NULL;
   return tokens;
@@ -234,9 +234,9 @@ void loopArgs(void)
 
   do {
     printf("> ");
-    line = lsh_read_line();
-    args = lsh_split_line(line);
-    status = lsh_execute(args);
+    line = sam_read_line();
+    args = sam_split_line(line);
+    status = sam_execute(args);
 
     free(line);
     free(args);
