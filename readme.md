@@ -1,4 +1,4 @@
-# CShell Project
+# CShell
 
 CShell is a simple command shell simulation program written in C. It allows users to interact with the terminal through basic command-line inputs, mimicking the functionality of a traditional shell environment.
 
